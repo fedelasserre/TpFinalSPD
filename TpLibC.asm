@@ -186,8 +186,6 @@ cargaEspecial proc
 	preguntar2 endp
 
 	preguntar3 proc
-		pop ax
-		pop dx
 
 		mov dx, offset pregunta3
 		call impresion
