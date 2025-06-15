@@ -4,11 +4,11 @@
 
 .data
 	numeroReg 		db 0
-	binario_en_reg 	db 0b
-	multiplicador 	db 100, 10, 1
+	binario_en_reg 		db 0b
+	multiplicador 		db 100, 10, 1
 	divisor 		db 100, 10, 1
 	salto 			db 0dh, 0ah, 24h
-	salidaError 	db 'Lo ingresado no es un número hexadecimal', 0dh, 0ah, 24h
+	salidaError 		db 'Lo ingresado no es un número hexadecimal', 0dh, 0ah, 24h
 	EseNo   		db "Pedro, te dijimos si o no", 0dh, 0ah, 24h
 	seguro 			db "Ahora, listo?", 0dh, 0ah, 24h
 	cartel 			db  "S (si) / N (no)", 0ah, 0dh, 24h
