@@ -3,13 +3,14 @@
 .stack 100h
 
 .data
-	numeroReg db 0
-	binario_en_reg db 0b
-	multiplicador db 100, 10, 1
-	divisor db 100, 10, 1
-	salto db 0dh, 0ah, 24h
-	salidaError db 'Lo ingresado no es un número hexadecimal', 0dh, 0ah, 24h
-
+	numeroReg 		db 0
+	binario_en_reg 	db 0b
+	multiplicador 	db 100, 10, 1
+	divisor 		db 100, 10, 1
+	salto 			db 0dh, 0ah, 24h
+	salidaError 	db 'Lo ingresado no es un número hexadecimal', 0dh, 0ah, 24h
+	EseNo   		db "Pedro, te dijimos si o no", 0dh, 0ah, 24h
+	seguro 			db "Ahora, listo?", 0dh, 0ah, 24h
 
 .code
 
@@ -25,6 +26,7 @@ public carga
 public mayusculizador
 public contarEspacios
 public contarCaracteresSt
+public cargaEspecial
 ;---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ;Funcion que imprimira un salto a la siguiente linea
 	imprimirSalto proc
@@ -349,6 +351,38 @@ public contarCaracteresSt
             pop bp
             ret 2
     contarCaracteresSt endp
+;---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+;Funcion para recibir un si o un no
+cargaEspecial proc
+		push ax
+		push bx
 
+		proceso:
+			mov ah, 1
+			int 21h
+			cmp al, 's'
+			je sigue
+			cmp al, 'S'
+			je sigue
+			cmp al, 'n'
+			je asustadoPotter
+			cmp al, 'N'
+			je asustadoPotter
+			lea bx, EseNo
+			int 21h
+		jmp proceso
+
+		asustadoPotter:
+			lea bx, seguro
+			int 21h
+		jmp proceso
+
+		sigue:
+
+		finCarga:
+			pop bx
+			pop ax
+			ret
+	cargaEspecial endp
 
 end
