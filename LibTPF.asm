@@ -11,6 +11,8 @@
 	salidaError 	db 'Lo ingresado no es un número hexadecimal', 0dh, 0ah, 24h
 	EseNo   		db "Pedro, te dijimos si o no", 0dh, 0ah, 24h
 	seguro 			db "Ahora, listo?", 0dh, 0ah, 24h
+	cartel 			db  "S (si) / N (no)", 0ah, 0dh, 24h
+	saltito 			db 0dh, 0ah, 24h
 
 .code
 
@@ -357,7 +359,7 @@ cargaEspecial proc
 		push ax
 		push bx
 
-		proceso:
+		proceso24:
 			mov ah, 1
 			int 21h
 			cmp al, 's'
@@ -368,18 +370,39 @@ cargaEspecial proc
 			je asustadoPotter
 			cmp al, 'N'
 			je asustadoPotter
-			lea bx, EseNo
+
+			mov ah, 9
+			mov dx, offset saltito
 			int 21h
-		jmp proceso
+
+			mov ah, 9
+			mov dx, offset EseNo
+			int 21h
+
+			mov ah, 9
+			mov dx, offset cartel
+			int 21h
+
+		jmp proceso24
 
 		asustadoPotter:
-			lea bx, seguro
+			mov ah, 9
+			mov dx, offset saltito
 			int 21h
-		jmp proceso
+
+			mov ah, 9
+			mov dx, offset seguro
+			int 21h
+
+			mov ah, 9
+			mov dx, offset cartel
+			int 21h
+
+		jmp proceso24
 
 		sigue:
 
-		finCarga:
+		finCarga24:
 			pop bx
 			pop ax
 			ret
