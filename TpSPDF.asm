@@ -42,6 +42,8 @@ main proc
 		lea bx, sino
 		call cargaEspecial
 
+	
+
 	mov ax, 4c00h
 	int 21h
 
