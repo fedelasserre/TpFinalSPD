@@ -7,16 +7,22 @@
 	EseNo   		db "Pedro, te dijimos si o no", 0dh, 0ah, 24h
 	seguro 			db "Ahora, listo?", 0dh, 0ah, 24h
 	cartel 			db  "S (si) / N (no)", 0ah, 0dh, 24h
-	saltito 			db 0dh, 0ah, 24h
 	personajes		db '0',"1","2","3","4","5","6","7","8","9","10",0dh,0ah,24h
 	pregunta1		db "Tu personaje es femenino?",0dh,0ah,24h
 	pregunta2 		db "Tu personaje es animado?",0dh,0ah,24h
 	pregunta3 		db "Tu personaje es de nacionalidad argentina?",0dh,0ah,24h
 	pregunta4 		db "Tu personaje sale en una serie o pelicula?",0dh,0ah,24h
 	pregunta5 		db "Tu personaje es deportista?",0dh,0ah,24h
-	textoFinal		db "Tu personaje es el numero: ",0dh,0ah
+	textoFinal		db "Tu personaje es: ",24h
 	personajeAscii	db "000",0dh,0ah,24h
-	textoError		db "No pudimos encontrar tu personaje :(",0dh,0ah,24h
+	archivo			db "txt.txt",24h
+	filehandler 	db 00h,00h
+ 	readchar 		db 20h
+ 	filerror 		db "Archivo no existe o error de apertura", 0dh, 0ah, '$'
+ 	charactererror 	db "Error de lectura de caracter", 0dh, 0ah, '$'
+ 	nextpage 		db "Presione <Enter> para seguir, otra tecla para salir...", "$"
+ 	currentline 	db 01h
+ 	lastReadPos 	dw 00h
 
 .code
 
@@ -32,14 +38,14 @@ public preguntar5
 public resultado
 public respuestas
 public Clearscreen
+public leer 
 	
 	saltoFunc proc 
 		mov ah,9
-		mov dx, offset saltito
+		mov dx, offset salto
 		int 21h
 	ret
 	saltoFunc endp
-
 
 	proc Clearscreen
 		push ax
@@ -116,32 +122,24 @@ cargaEspecial proc
 			cmp al, 'N'
 			je asustadoPotter
 
-			mov ah, 9
-			mov dx, offset saltito
-			int 21h
+			call saltoFunc
 
-			mov ah, 9
 			mov dx, offset EseNo
-			int 21h
+			call impresion
 
-			mov ah, 9
 			mov dx, offset cartel
-			int 21h
+			call impresion
 
 		jmp proceso24
 
 		asustadoPotter:
-			mov ah, 9
-			mov dx, offset saltito
-			int 21h
+			call saltoFunc
 
-			mov ah, 9
 			mov dx, offset seguro
-			int 21h
+			call impresion
 
-			mov ah, 9
 			mov dx, offset cartel
-			int 21h
+			call impresion
 
 		jmp proceso24
 
@@ -168,16 +166,12 @@ cargaEspecial proc
 			cmp al, 'N'
 			je sigue25
 
-			mov dx, offset saltito
-			call impresion
+			call saltoFunc
 
 			mov dx, offset EseNo
 			call impresion
 
 			mov dx, offset cartel
-			call impresion
-
-			mov dx, offset saltito
 			call impresion
 
 		jmp proceso25
@@ -189,16 +183,92 @@ cargaEspecial proc
 			ret
 	cargaEspecial2 endp
 
+	leer proc
+	  push dx
+	  push cx
+	  push bx
+	  push ax 
+
+	  lea dx,archivo
+	  mov ah,3dH
+	  mov al,0
+	  int 21H
+	  jc openerr
+	  mov word ptr[filehandler], ax
+
+	char:
+	  mov ah,3FH
+	  mov bx, word ptr [filehandler]
+	  mov cx,1
+	  lea dx,readchar
+	  int 21H
+	  jc charerr
+	  
+	  cmp ax,0
+	  je finalLeer
+	  
+	  cmp byte ptr [readchar],'#'
+	  je foundHash
+
+	  mov dl,readchar
+	  mov ah,02H
+	  int 21H
+	  
+	  cmp dl,0ah
+	  jne char
+	  cmp currentline,18h
+	  je endofpage
+	  inc currentline
+	  jmp char
+
+	foundHash:
+		jmp finalLeer
+
+	endofpage:
+	  lea dx, nextpage
+	  mov ah,9
+	  int 21h
+	  
+	  mov ah,1
+	  int 21h
+	  cmp al,0dh
+	  jne finalLeer
+	  mov currentline,01h
+	  jmp char
+	 
+	 openerr:
+	  lea dx, filerror
+	  mov ah,9
+	  int 21h
+	  jmp finalLeer
+	  
+	 charerr:
+	  lea dx, charactererror
+	  mov ah,9
+	  int 21h
+	  jmp finalLeer
+	 
+	finalLeer:
+		call saltoFunc
+		pop ax
+		pop bx
+		pop cx
+		pop dx
+		ret 
+	leer endp
 
 	respuestas proc
 			mov ah, 1
 			int 21h
-			mov dx, offset salto 
-			call impresion
+			call saltoFunc
 		ret
 	respuestas endp
 
 	preguntar1 proc
+
+		push ax
+		push dx
+		
 		mov al, 0
 		mov personajes[0],0
 		mov dx, offset pregunta1
@@ -235,11 +305,14 @@ cargaEspecial proc
 			jmp finPreguntar1
 
 		finPreguntar1:
-
+		pop dx
+		pop ax
 		ret 
 	preguntar1 endp
 
 	preguntar2 proc
+		push ax
+		push dx
 		
 		mov dx, offset pregunta2
 		call impresion
@@ -275,12 +348,15 @@ cargaEspecial proc
 			jmp finPreguntar2
 			 
 		finPreguntar2:
-		
+		pop dx
+		pop ax
 		ret
 	preguntar2 endp
 
 	preguntar3 proc
-
+		push ax
+		push dx
+		
 		mov dx, offset pregunta3
 		call impresion
 
@@ -315,10 +391,14 @@ cargaEspecial proc
 			jmp finPreguntar3
 			 
 		finPreguntar3:
+		pop dx
+		pop ax
 		ret
 	preguntar3 endp
 
 	preguntar4 proc
+		push ax
+		push dx
 
 		mov dx, offset pregunta4
 		call impresion
@@ -354,10 +434,14 @@ cargaEspecial proc
 			jmp finPreguntar4
 			 
 		finPreguntar4:
+		pop dx
+		pop ax
 		ret
 	preguntar4 endp
 
 	preguntar5 proc
+		push ax
+		push dx 
 
 		mov dx, offset pregunta5
 		call impresion
@@ -393,6 +477,8 @@ cargaEspecial proc
 			jmp finPreguntar5
 			 
 		finPreguntar5:
+		pop dx
+		pop ax
 		ret
 	preguntar5 endp
 
@@ -401,25 +487,22 @@ cargaEspecial proc
 
 		compara:
 			cmp si, 11
-			je finalError
+			je finProceso
 			cmp personajes[si],0 
 			jne final 
 			inc si 
 			jmp compara
 
 		final:
-			mov bx, offset personajeAscii
-			mov dx, si
-			call regtoascii
+			;mov bx, offset personajeAscii
+			;mov dx, si
+			;call regtoascii
 
 			mov dx, offset textoFinal
 			call impresion
 
 			jmp finProceso
 
-		finalError:
-			mov dx, offset textoError
-			call impresion
 		finProceso:
 	ret 
 	resultado endp
