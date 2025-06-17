@@ -9,10 +9,15 @@
 	paulapareto		db	"Paula Pareto",0dh,0ah, 24h
 	messi			db	"Leo Messi",0dh,0ah, 24h
 	scarlet			db	"Scarlet Johannsen",0dh,0ah, 24h
-	mirthalegrand	db	"Mirta Legrand",0dh,0ah, 24h
+	mirthalegrand	db	"Mirtha Legrand",0dh,0ah, 24h
 	pikachu			db	"Pikachu",0dh,0ah, 24h
 	mafalda			db	"Mafalda",0dh,0ah, 24h
-	textoError		db "No pudimos encontrar tu personaje :(",0dh,0ah,24h
+	intentos 		db 0
+	textoFinal		db "Tu personaje es: ",24h
+	textoError		db  "No pudimos encontrar tu personaje :(",0dh,0ah
+					db  "Lo intentamos una vez mas?",0dh,0ah,24h
+	cantidadInt		db "Cantidad de intentos: "
+	intentosAscii	db 	"000",0dh,0ah,24h
 	salto 			db 0dh, 0ah, 24h
 	sino 			db 255 dup (24h), 0dh, 0ah, 24h
 
@@ -29,6 +34,8 @@ extrn resultado:proc
 extrn clearscreen:proc
 extrn cargaEspecial2:proc
 extrn leer:proc
+extrn regtoascii:proc
+extrn restablecerPersonajes:proc
 
 main proc
 	mov ax, @data
@@ -40,6 +47,10 @@ main proc
 
 		mov dx, offset sino
 		call cargaEspecial
+
+	preguntas:
+
+		inc intentos 
 
 		call clearscreen
 
@@ -54,6 +65,14 @@ main proc
 		call preguntar5
 
 		call resultado
+
+	intentosFunc:
+		mov bx, offset intentosAscii
+		mov dl, intentos  
+		call regtoascii
+
+		mov dx, offset cantidadInt
+		call impresion
 
 		cmp si,1
 		je personaje1
@@ -87,6 +106,11 @@ main proc
 
 		cmp si,11
 		je finalError
+
+		mov dx, offset textoFinal
+		call impresion
+
+		jmp finalError
 
 		personaje1:
 			mov dx, offset bradpitt
@@ -130,9 +154,24 @@ main proc
 			jmp final
 		
 		finalError:
+
 			mov dx, offset textoError
 			call impresion
+
+			call cargaEspecial2
+			cmp al, 's'
+			je reinicia
+			cmp al, 'S'
+			je reinicia
+			cmp al, 'n'
+			je final
+			cmp al, 'N'
+			je final 
 			jmp final
+
+			reinicia:
+				call restablecerPersonajes
+				jmp preguntas
 	final:
 	mov ax, 4c00h
 	int 21h
