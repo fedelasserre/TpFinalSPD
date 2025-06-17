@@ -7,6 +7,7 @@
 	EseNo   		db "Pedro, te dijimos si o no", 0dh, 0ah, 24h
 	seguro 			db "Ahora, listo?", 0dh, 0ah, 24h
 	cartel 			db  "S (si) / N (no)", 0ah, 0dh, 24h
+	personajesOG	db '0',"1","2","3","4","5","6","7","8","9","10",0dh,0ah,24h
 	personajes		db '0',"1","2","3","4","5","6","7","8","9","10",0dh,0ah,24h
 	pregunta1		db "Tu personaje es femenino?",0dh,0ah,24h
 	pregunta2 		db "Tu personaje es animado?",0dh,0ah,24h
@@ -14,7 +15,6 @@
 	pregunta4 		db "Tu personaje sale en una serie o pelicula?",0dh,0ah,24h
 	pregunta5 		db "Tu personaje es deportista?",0dh,0ah,24h
 	textoFinal		db "Tu personaje es: ",24h
-	personajeAscii	db "000",0dh,0ah,24h
 	archivo			db "txt.txt",24h
 	filehandler 	db 00h,00h
  	readchar 		db 20h
@@ -39,7 +39,8 @@ public resultado
 public respuestas
 public Clearscreen
 public leer 
-	
+public restablecerPersonajes
+
 	saltoFunc proc 
 		mov ah,9
 		mov dx, offset salto
@@ -81,13 +82,14 @@ public leer
         push ax
         push dx
 
-        xor dh,dh
 		add bx,2
+
 		xor ax,ax
 		mov al, dl
 		mov dl, 10
 		div dl
-		add [bx],ah
+		add ah,30h
+		mov [bx],ah
 
 		xor ah,ah
 		dec bx
@@ -265,7 +267,6 @@ cargaEspecial proc
 	respuestas endp
 
 	preguntar1 proc
-
 		push ax
 		push dx
 		
@@ -498,12 +499,26 @@ cargaEspecial proc
 			;mov dx, si
 			;call regtoascii
 
-			mov dx, offset textoFinal
-			call impresion
-
 			jmp finProceso
 
 		finProceso:
 	ret 
 	resultado endp
+
+restablecerPersonajes proc
+	push ax
+	push si
+	mov si, 0
+	siguiente_byte:
+		cmp si, 12       ; hay 12 caracteres en total
+		je fin_restaura
+		mov al, personajesOG[si]
+		mov personajes[si], al
+		inc si
+		jmp siguiente_byte
+	fin_restaura:
+	pop si
+	pop ax
+	ret
+restablecerPersonajes endp
 end
